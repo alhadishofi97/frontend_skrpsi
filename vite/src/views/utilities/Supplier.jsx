@@ -70,22 +70,22 @@ const BarangList = () => {
     { name: 'Harga (Rp)', selector: (row) => row.harga, sortable: true, format: (row) => formatRupiah(row.harga) },
     { name: 'Kategori', selector: (row) => row.kategori_barang?.nama_kategori_barang, sortable: true },
     { name: 'Tipe Motor', selector: (row) => row.type_motor?.type_motor, sortable: true },
-    // {
-    //   name: 'Action',
-    //   selector: (row) => 'Action',
-    //   width: '250px',
-    //   sortable: false,
-    //   format: (row) => (
-    //     <div>
-    //       <Button variant="outlined" onClick={() => handleEdit(row)} style={{ marginRight: '10px' }} startIcon={<IconPencil />}>
-    //         Edit
-    //       </Button>
-    //       <Button variant="outlined" onClick={() => openDeleteDialog(row)} startIcon={<DeleteIcon />}>
-    //         Delete
-    //       </Button>
-    //     </div>
-    //   )
-    // }
+    {
+      name: 'Action',
+      selector: (row) => 'Action',
+      width: '250px',
+      sortable: false,
+      format: (row) => (
+        <div>
+          <Button variant="outlined" onClick={() => handleEdit(row)} style={{ marginRight: '10px' }} startIcon={<IconPencil />}>
+            Edit
+          </Button>
+          <Button variant="outlined" onClick={() => openDeleteDialog(row)} startIcon={<DeleteIcon />}>
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
   // Open the delete dialog
@@ -282,24 +282,24 @@ const BarangList = () => {
     setFilteredData(filtered);
   }, [filterText, barangData]);
 
-  // const openModal = () => {
-  //   setEditingItem(null); // Clear editing state when opening the modal
-  //   setFormData({
-  //     part_no: '',
-  //     nama_barang: '',
-  //     id_kategori_barang: '',
-  //     id_type_motor: '',
-  //     jumlah_digudang: '',
-  //     jumlah_ditoko: '',
-  //     lokasi_rak: '',
-  //     deskripsi: '',
-  //     foto_barang: '',
-  //     harga: '',
-  //     delete_status: 0,
-  //     edited_by: 'admin'
-  //   });
-  //   setIsModalOpen(true);
-  // };
+  const openModal = () => {
+    setEditingItem(null); // Clear editing state when opening the modal
+    setFormData({
+      part_no: '',
+      nama_barang: '',
+      id_kategori_barang: '',
+      id_type_motor: '',
+      jumlah_digudang: '',
+      jumlah_ditoko: '',
+      lokasi_rak: '',
+      deskripsi: '',
+      foto_barang: '',
+      harga: '',
+      delete_status: 0,
+      edited_by: 'admin'
+    });
+    setIsModalOpen(true);
+  };
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -319,12 +319,12 @@ const BarangList = () => {
 
   return (
     <div>
-      <h1>Barang List</h1>
+      <h1>List Barang Gudang</h1>
       {/* <button variant="contained" onClick={openModal} style={{ marginBottom: '20px', padding: '10px', fontSize: '16px' }}>
         {editingItem ? 'Update Barang' : 'Create Barang'}
       </button> */}
       <Button variant="contained" onClick={() => openModal()} style={{ marginBottom: '20px' }}>
-      {editingItem ? 'Update Barang' : 'Lakukan Transaksi Barang'}
+      {editingItem ? 'Update Barang' : 'Create Barang'}
       </Button>
       <div style={{ marginBottom: '20px' }}>
         <input
@@ -446,14 +446,14 @@ const BarangList = () => {
         </button>
       </Modal>
 
-
+      
       <div>
-        <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
           <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: '100%' }}>
             {editingItem ? 'Successfully updated barang' : 'Successfully created barang'}
           </Alert>
         </Snackbar>
-        <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
+        <Snackbar open={openError} autoHideDuration={3000} onClose={() => setOpenError(false)}>
           <Alert onClose={handleClose} severity="error" variant="filled" sx={{ width: '100%' }}>
             Part number already exists. Please use a different part number.
           </Alert>
@@ -481,7 +481,7 @@ const BarangList = () => {
         </DialogActions>
       </Dialog>
 
-      <Snackbar open={deleteSnackbar} autoHideDuration={6000} onClose={() => setDeleteSnackbar(false)}>
+      <Snackbar open={deleteSnackbar} autoHideDuration={3000} onClose={() => setDeleteSnackbar(false)}>
           <Alert onClose={handleClose} severity="success" variant="filled" >
             Barang deletd successfully!
           </Alert>

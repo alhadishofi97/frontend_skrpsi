@@ -53,6 +53,36 @@ const AuthLogin = ({ username, setUsername, password, setPassword, ...others }) 
     event.preventDefault();
   };
 
+  // New function to handle form submission and API call
+  const handleLogin = async (values, { setSubmitting, setErrors }) => {
+    console.log("handleLogin"); // Cek fungsi
+    try {
+      const response = await fetch('https://backendapi.my.id/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: values.username,
+          password: values.password,
+        }),
+      });
+
+      const data = await response.json();
+      console.log(response,"test"); // Cek respons 
+
+      if (data.status === 'success') {
+        localStorage.setItem('token', data.token); 
+        alert('Login berhasil');
+        window.location.href = '/barang';
+      } else {
+        setErrors({ submit: data.message || 'Login failed' });
+      }
+    } catch (error) {
+      setErrors({ submit: 'Something went wrong' });
+    }
+
+    setSubmitting(false);
+  };
+
   return (
     <>
       <Grid container direction="column" justifyContent="center" spacing={2}>
@@ -116,14 +146,15 @@ const AuthLogin = ({ username, setUsername, password, setPassword, ...others }) 
 
       <Formik
         initialValues={{
-          username: '', // Ganti email dengan username
+          username: '',
           password: '',
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          username: Yup.string().max(255).required('Username is required'), // Validasi untuk username
+          username: Yup.string().max(255).required('Username is required'),
           password: Yup.string().max(255).required('Password is required')
         })}
+        onSubmit={handleLogin}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit} {...others}>
@@ -131,9 +162,9 @@ const AuthLogin = ({ username, setUsername, password, setPassword, ...others }) 
               <InputLabel htmlFor="outlined-adornment-username-login">Username</InputLabel>
               <OutlinedInput
                 id="outlined-adornment-username-login"
-                type="text" // Ganti type menjadi text
-                value={values.username} // Ganti email dengan username
-                name="username" // Ganti email dengan username
+                type="text"
+                value={values.username}
+                name="username"
                 onBlur={handleBlur}
                 onChange={handleChange}
                 label="Username"

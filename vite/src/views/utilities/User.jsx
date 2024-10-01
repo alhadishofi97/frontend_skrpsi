@@ -10,10 +10,15 @@ import Alert from '@mui/material/Alert';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { width } from '@mui/system';
 import { IconPencil } from '@tabler/icons-react';
+// import Login from '../pages/authentication3/Login3';
+
+
 
 Modal.setAppElement('#root');
 
 const UsersList = () => {
+  // const { token } = Login(); // Dapatkan token dari context
+  const token = localStorage.getItem('token');
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,14 +30,18 @@ const UsersList = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  
 
+  // console.log(token);
   // Definisikan fetchUsers di atas reloadUsers
   const fetchUsers = async () => {
     try {
+      // const token = localStorage.getItem('token');
         const response = await fetch('https://backendapi.my.id/api/users/get_all_users', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Tambahkan token ke header
             },
         });
         const result = await response.json();
@@ -97,7 +106,12 @@ const UsersList = () => {
 
   const handleDeleteUser = async () => {
     try {
-      const response = await axios.delete(`https://backendapi.my.id/api/users/delete/user/${selectedUser.id}`);
+      const response = await axios.delete(`https://backendapi.my.id/api/users/delete/user/${selectedUser.id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Tambahkan token ke header
+      },
+      });
       if (response.data.status === 'success') {
         setUsers(users.filter((user) => user.id !== selectedUser.id));
         setFilteredUsers(filteredUsers.filter((user) => user.id !== selectedUser.id));
@@ -209,7 +223,12 @@ const UsersList = () => {
 
     const handleSubmit = async () => {
       try {
-        const response = await axios.post('https://backendapi.my.id/api/users/create/user', formData);
+        const response = await axios.post('https://backendapi.my.id/api/users/create/user', formData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Tambahkan token ke header
+        },
+        });
         if (response.data.status === 'success') {
           const newUser = response.data.data;
           setUsers([...users, newUser]);
@@ -323,7 +342,10 @@ const UsersList = () => {
     const handleSubmit = async () => {
         try {
             const response = await axios.put(`https://backendapi.my.id/api/users/update-user/${user.id}`, formData, {
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Tambahkan token ke header
+                }
             });
             if (response.data.status === 'success') {
                 setSnackbarMessage('User updated successfully'); // Tambahkan pesan Snackbar
@@ -416,12 +438,12 @@ const UsersList = () => {
   return (
     <div>
       <h1>Users List</h1>
-      <button onClick={openModal} style={{ marginBottom: '20px', padding: '10px', fontSize: '16px' }}>
+      <Button variant="contained" onClick={() => openModal()} style={{ marginBottom: '20px' }}>
         Create User
-      </button>
-      <button onClick={reloadUsers} style={{ marginLeft: '10px', marginBottom: '20px', padding: '10px', fontSize: '16px' }}>
+      </Button>
+      <Button onClick={reloadUsers} variant='contained' style={{ marginBottom: '20px', marginLeft:'15px'}}  >
         Reload Data
-      </button>
+      </Button>
       <input 
         type="text"
         placeholder="Search by name, email, or team"

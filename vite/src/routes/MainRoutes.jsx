@@ -13,6 +13,7 @@ const UtilsColor = Loadable(lazy(() => import('views/utilities/User')));
 const UtilsShadow = Loadable(lazy(() => import('views/utilities/Customer')));
 // const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/Barang')));
+const UtilsSupplier = Loadable(lazy(() => import('views/utilities/Supplier')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
@@ -69,6 +70,15 @@ const MainRoutes = {
         {
           path: 'util-barang',
           element: <UtilsTablerIcons />
+        }
+      ]
+    },
+    {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-supplier',
+          element: <UtilsSupplier />
         }
       ]
     },

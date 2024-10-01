@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import {
@@ -21,18 +21,28 @@ import AuthFooter from 'ui-component/cards/AuthFooter';
 // Mocking the login API response for this example
 const loginApiUrl = 'https://backendapi.my.id/api/users/login';
 
-const Login = () => {
+
+
+export const Login = () => {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      navigate('/dashboard/default',{replace:true});  // Adjust the route as needed
+    }
+  },[])  
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
 
     const loginData = { username, password };
+
+    // console.log(loginData);
 
     try {
       const response = await fetch(loginApiUrl, {
@@ -45,7 +55,14 @@ const Login = () => {
 
       if (response.ok && data.status === 'success') {
         // Login successful, navigate to the dashboard or home
-        navigate('/dashboard');  // Adjust the route as needed
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('menu-items', data.authority);  
+        localStorage.setItem('user', loginData.username);
+        // window.location.replace('dashboard/default');
+        
+       
+        // alert('Login berhasil');
+        navigate(0);  // Adjust the route as needed
       } else {
         // Display error message
         setError(data.message || 'Login failed, please try again.');

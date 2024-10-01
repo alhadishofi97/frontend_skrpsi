@@ -47,6 +47,14 @@ const utilities = {
       url: '/utils/util-barang',
       icon: icons.IconShadow,
       breadcrumbs: false
+    },
+    {
+      id: 'util-supplier',
+      title: 'Supplier',
+      type: 'item',
+      url: '/utils/util-supplier',
+      icon: icons.IconShadow,
+      breadcrumbs: false
     }
   ]
 };

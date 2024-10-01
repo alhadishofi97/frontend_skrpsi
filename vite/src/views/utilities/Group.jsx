@@ -1,17 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DataTable from 'react-data-table-component';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import { width } from '@mui/system';
 import { IconPencil } from '@tabler/icons-react';
-
-// Array teams
-const teams = [
-    { id: 1, name: 'Administrator' },
-    { id: 2, name: 'Staf Gudang' },
-    { id: 3, name: 'Staf Kasir' },
-    { id: 4, name: 'Staf Toko' },
-    { id: 5, name: 'Mekanik' },
-];
+import { menuItems } from 'menu-items';
+import { SimpleTreeView, TreeItem } from '@mui/x-tree-view';
+import { Checkbox, Button } from '@mui/material';
 
 // Authority menus
 const authorityMenus = [
@@ -24,38 +16,88 @@ const authorityMenus = [
 
 // Component for Edit Form with checkboxes
 const EditForm = ({ team, onSave, onCancel }) => {
-    const [selectedAuthorities, setSelectedAuthorities] = useState(team.authorities || []); // Inisialisasi dengan authorities dari team
+    // const [selectedAuthorities, setSelectedAuthorities] = useState(team.authority ? team.authority.split(',') : []); // Initialize with team authority
 
-    const handleCheckboxChange = (menu) => {
-        setSelectedAuthorities((prev) =>
-            prev.includes(menu)
-                ? prev.filter((item) => item !== menu)
-                : [...prev, menu]
-        );
-    };
+    // const handleCheckboxChange = (menu) => {
+    //     setSelectedAuthorities((prev) =>
+    //         prev.includes(menu)
+    //             ? prev.filter((item) => item !== menu)
+    //             : [...prev, menu]
+    //     );
+    // };
+    const storedAllowedMenus = localStorage.getItem('menu-items');
+    const [allowedMenus, setAllowedMenus] = useState(storedAllowedMenus ? JSON.parse(storedAllowedMenus) : []);
 
     const handleSave = () => {
-        onSave({ ...team, authorities: selectedAuthorities }); // Simpan authorities yang dipilih
+        onSave({ ...team, authority: allowedMenus}); // Save selected authorities as comma-separated string
     };
+
+    
+
+    const handleMenuToggle = (id, children) => {
+
+        setAllowedMenus((prev) => {
+          const newAllowedMenus = new Set(prev); // Gunakan Set untuk menghindari duplikasi
+    
+          const toggleChildren = (childNodes, shouldCheck) => {
+            childNodes.forEach((child) => {
+              if (shouldCheck) {
+                newAllowedMenus.add(child.id); // Tambah ke Set
+              } else {
+                newAllowedMenus.delete(child.id); // Hapus dari Set
+              }
+              // Jika ada children, lakukan rekursi
+              if (Array.isArray(child.children)) {
+                toggleChildren(child.children, shouldCheck);
+              }
+            });
+          };
+    
+          const shouldCheck = !newAllowedMenus.has(id); // Cek jika id sudah ada di Set
+          if (shouldCheck) {
+            newAllowedMenus.add(id); // Tambah parent
+          } else {
+            newAllowedMenus.delete(id); // Hapus parent
+          }
+    
+          toggleChildren(children, shouldCheck); // Toggle children sesuai dengan parent
+    
+          return Array.from(newAllowedMenus); // Kembalikan ke array
+        });
+      };
+
+    const renderTree = (nodes) => (
+        <TreeItem
+          key={nodes.id}
+          nodeid={nodes.id}
+          itemId={nodes.id}
+          label={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Checkbox
+                checked={allowedMenus.includes(nodes.id)}
+                onChange={() => handleMenuToggle(nodes.id, nodes.children || [])}
+                size="small"
+                style={{ marginRight: 8 }}
+              />
+              {nodes.title} {/* Menampilkan label di sini */}
+            </div>
+          }
+        >
+          {Array.isArray(nodes.children) ? nodes.children.map(renderTree) : null}
+        </TreeItem>
+      );
 
     return (
         <div>
-            <h3>Edit Role: {team.name}</h3>
-            <form>
-                {authorityMenus.map((menu) => (
-                    <div key={menu}>
-                        <label>
-                            <input
-                                type="checkbox"
-                                value={menu}
-                                onChange={() => handleCheckboxChange(menu)}
-                                checked={selectedAuthorities.includes(menu)}
-                            />
-                            {menu}
-                        </label>
-                    </div>
-                ))}
-            </form>
+            <div>
+                <h2>Menu Settings</h2>
+                <SimpleTreeView expansionTrigger="iconContainer">
+                    {menuItems.items.map(renderTree)} {/* Menampilkan semua menu */}
+                </SimpleTreeView>
+                {/* <Button variant="contained" color="primary" onClick={handleSave} style={{ marginTop: '16px' }}>
+                    Save Changes
+                </Button> */}
+            </div>
             <button onClick={handleSave}>Save</button>
             <button onClick={onCancel}>Cancel</button>
         </div>
@@ -64,13 +106,63 @@ const EditForm = ({ team, onSave, onCancel }) => {
 
 // Teams table using DataTable
 const TeamsTable = () => {
+    const [teams, setTeams] = useState([]); // Store teams data from API
     const [editingTeam, setEditingTeam] = useState(null);
-    const [selectedUser, setSelectedUser] = useState(null); // Tambahkan ini
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Tambahkan ini
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    
 
-    const openEditModal = (user) => {
-        setEditingTeam(user); // Ubah ini untuk mengatur editingTeam
+    // Fetch data from the API
+    useEffect(() => {
+        const fetchTeams = async () => {
+            try {
+                const response = await fetch('https://backendapi.my.id/api/masterTim/get_tim');
+                const result = await response.json();
+                if (result.success) {
+                    setTeams(result.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch teams:', error);
+            }
+        };
+
+        fetchTeams();
+    }, []);
+
+    const openEditModal = (team) => {
+        setEditingTeam(team);
+        console.log(team, 'team');
         setIsEditModalOpen(true);
+    };
+
+    const handleSave = async (edited) => {
+        console.log('Edited team:', edited);
+        try {
+            const response = await fetch(`https://backendapi.my.id/api/masterTim/update/${edited.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: edited.name,
+                    authority: JSON.stringify(edited.authority),
+                }),
+            });
+            const result = await response.json();
+            if (result.success) {
+                console.log('Updated team:', edited);
+                setTeams((prevTeams) =>
+                    prevTeams.map((team) =>
+                        team.id === edited.id ? edited : team
+                    )
+                );
+                setEditingTeam(null); // Close form after save
+                setIsEditModalOpen(false);
+            } else {
+                console.error('Failed to update team:', result.message);
+            }
+        } catch (error) {
+            console.error('Error updating team:', error);
+        }
     };
 
     const columns = [
@@ -87,15 +179,19 @@ const TeamsTable = () => {
         {
             name: 'Actions',
             cell: (row) => (
-                <Button variant="outlined" onClick={() => openEditModal(row)} style={{ marginRight: '10px' }} startIcon={<IconPencil />}>Edit</Button>
+                <Button
+                    variant="outlined"
+                    onClick={() => openEditModal(row)}
+                    style={{ marginRight: '10px' }}
+                    startIcon={<IconPencil />}
+                >
+                    Edit
+                </Button>
             ),
         },
     ];
 
-    const handleSave = (updatedTeam) => {
-        console.log('Updated team:', updatedTeam);
-        setEditingTeam(null); // Close form after save
-    };
+
 
     return (
         <div>
