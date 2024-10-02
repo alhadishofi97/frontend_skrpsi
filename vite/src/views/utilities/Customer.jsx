@@ -7,8 +7,6 @@ import Alert from '@mui/material/Alert';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { IconPencil } from '@tabler/icons-react';
-// const jwt = require('jsonwebtoken'); // Import JWT
-// const secretKey = 'your-secret-key';
 
 Modal.setAppElement('#root');
 
@@ -19,6 +17,7 @@ const CustomerList = () => {
   const [error, setError] = useState(null);
   const [filterText, setFilterText] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [typesMotor, setTypesMotor] = useState([]);
   const [formData, setFormData] = useState({
     nama: '',
     no_hp: '',
@@ -26,7 +25,11 @@ const CustomerList = () => {
     deskripsi: '',
     created_by: '',
     edited_by: '',
-    delete_status: 0
+    delete_status: 0,
+    plat_motor: '',
+    id_type_motor: 0,
+    status: 'aktif',
+    varian: '' // Menambahkan field varian
   });
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -35,7 +38,6 @@ const CustomerList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
-  
   useEffect(() => {
     // Fetch customers from API
     const fetchCustomers = async () => {
@@ -65,6 +67,27 @@ const CustomerList = () => {
   }, []);
 
   useEffect(() => {
+    // Fetch motor types
+    const fetchMotorTypes = async () => {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+      try {
+        const typesMotorResponse = await axios.get('https://backendapi.my.id/api/type-motor/all_motor', config);
+        setTypesMotor(typesMotorResponse.data.data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchMotorTypes();
+  }, []);
+
+  useEffect(() => {
     // Filter data based on filterText
     const filtered = data.filter((item) =>
       Object.values(item).some((val) =>
@@ -76,16 +99,19 @@ const CustomerList = () => {
 
   const openModal = (customer = null) => {
     if (customer) {
-      // console.log(customer, 'melbu');
       setEditingCustomer(customer);
       setFormData({
         nama: customer.nama,
         no_hp: customer.no_hp,
         alamat: customer.alamat,
         deskripsi: customer.deskripsi,
-        created_by: customer.created_by,
-        edited_by: customer.edited_by,
-        delete_status: customer.delete_status
+        created_by: customer.kustomer_created_by, // Menggunakan created_by dari API
+        edited_by: customer.kustomer_edited_by, // Menggunakan edited_by dari API
+        delete_status: customer.delete_status,
+        plat_motor: customer.plat_motor,
+        id_type_motor: customer.id_type_motor,
+        status: customer.motor_status, // Menggunakan status dari API
+        // varian: customer.varian // Menambahkan varian
       });
     } else {
       setFormData({
@@ -95,7 +121,11 @@ const CustomerList = () => {
         deskripsi: '',
         created_by: '',
         edited_by: '',
-        delete_status: 0
+        delete_status: 0,
+        plat_motor: '',
+        id_type_motor: 0,
+        status: 'aktif',
+        // varian: '' // Menambahkan field varian
       });
     }
     setIsModalOpen(true);
@@ -106,10 +136,17 @@ const CustomerList = () => {
     setEditingCustomer(null);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value
+    }));
+  };
+
   const handleSave = async () => {
     const token = localStorage.getItem('token');
-    // Ambil informasi pengguna yang sedang login
-    const currentUser = localStorage.getItem('user'); // Misalnya, ambil dari localStorage
+    const currentUser = localStorage.getItem('user'); // Memastikan user diambil dari localStorage
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -119,19 +156,17 @@ const CustomerList = () => {
 
     const createFormData = {
       ...formData,
-      created_by: currentUser // Ganti dengan nama pengguna yang sesuai
-    }
+      created_by: currentUser,
+    };
 
-  
-    // Tambahkan edited_by ke formData
     const updatedFormData = {
       ...formData,
-      edited_by: currentUser // Ganti dengan nama pengguna yang sesuai
+      edited_by: currentUser,
+      // varian: formData.varian // Menambahkan varian saat update
     };
 
     try {
       if (editingCustomer) {
-        // console.log(editingCustomer, 'melbu update');
         // Update customer
         const response = await axios.put(`https://backendapi.my.id/api/customer/update_kustomer/${editingCustomer.id_kustomer}`, updatedFormData, config);
         if (response.data.status === 'success') {
@@ -149,7 +184,6 @@ const CustomerList = () => {
         }
       }
 
-      // Refresh customer list
       const updatedCustomers = await axios.get('https://backendapi.my.id/api/customer/get_all_kustomer', config);
       setData(updatedCustomers.data.data);
       setFilteredData(updatedCustomers.data.data);
@@ -190,13 +224,16 @@ const CustomerList = () => {
   };
 
   const columns = [
-    { name: 'ID', selector: row => row.id_kustomer, sortable: true },
-    { name: 'Name', selector: row => row.nama, sortable: true },
-    { name: 'Phone', selector: row => row.no_hp, sortable: true },
-    { name: 'Address', selector: row => row.alamat, sortable: true },
-    { name: 'Description', selector: row => row.deskripsi, sortable: true, wrap: true },
-    { name: 'Created By', selector: row => row.created_by, sortable: true },
-    { name: 'Edited By', selector: row => row.edited_by, sortable: true },
+    { name: 'ID', selector: (row) => row.id_kustomer, sortable: true },
+    { name: 'Name', selector: (row) => row.nama, sortable: true },
+    { name: 'Phone', selector: (row) => row.no_hp, sortable: true },
+    { name: 'Address', selector: (row) => row.alamat, sortable: true , wrap: true},
+    { name: 'Description', selector: (row) => row.deskripsi, sortable: true, wrap: true },
+    { name: 'Plat Motor', selector: (row) => row.plat_motor, sortable: true, wrap: true },
+    { name: 'Tipe Motor', selector: (row) => row.type_motor, sortable: true }, // Pastikan selector mengakses row.type_motor
+    // { name: 'Varian', selector: (row) => row.varian, sortable: true }, // Menambahkan kolom varian
+    { name: 'Created By', selector: (row) => row.kustomer_created_by, sortable: true }, // Pastikan selector mengakses row.kustomer_created_by
+    { name: 'Edited By', selector: (row) => row.kustomer_edited_by, sortable: true },
     {
       name: 'Action',
       selector: (row) => 'Action',
@@ -288,6 +325,26 @@ const CustomerList = () => {
             onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
             style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
           />
+          <input
+            name="plat_motor"
+            placeholder="Plat Motor"
+            value={formData.plat_motor}
+            onChange={(e) => setFormData({ ...formData, plat_motor: e.target.value })}
+            style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
+          />
+          <select
+            name="id_type_motor"
+            value={formData.id_type_motor}
+            onChange={handleInputChange}
+            style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
+          >
+            <option value="">Pilih Tipe Motor</option>
+            {typesMotor.map((type) => (
+              <option key={type.id_type_motor} value={type.id_type_motor}>
+                {type.type_motor}
+              </option>
+            ))}
+          </select>
         </form>
         <Button onClick={handleSave} style={{ padding: '10px', fontSize: '16px' }}>
           {editingCustomer ? 'Update' : 'Save'}
