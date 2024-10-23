@@ -5,17 +5,9 @@ import { menuItems } from 'menu-items';
 import { SimpleTreeView, TreeItem } from '@mui/x-tree-view';
 import { Checkbox, Button } from '@mui/material';
 
-// Authority menus
-const authorityMenus = [
-    'Manage Users',
-    'View Reports',
-    'Edit Products',
-    'Access Inventory',
-    'Process Sales',
-];
 
 // Component for Edit Form with checkboxes
-const EditForm = ({ team, onSave, onCancel }) => {
+const EditForm = ({ team, onSave, onCancel, allowedMenus, setAllowedMenus  }) => {
     // const [selectedAuthorities, setSelectedAuthorities] = useState(team.authority ? team.authority.split(',') : []); // Initialize with team authority
 
     // const handleCheckboxChange = (menu) => {
@@ -26,7 +18,7 @@ const EditForm = ({ team, onSave, onCancel }) => {
     //     );
     // };
     const storedAllowedMenus = localStorage.getItem('menu-items');
-    const [allowedMenus, setAllowedMenus] = useState(storedAllowedMenus ? JSON.parse(storedAllowedMenus) : []);
+    // const [allowedMenus, setAllowedMenus] = useState(storedAllowedMenus ? JSON.parse(storedAllowedMenus) : []);
 
     const handleSave = () => {
         onSave({ ...team, authority: allowedMenus}); // Save selected authorities as comma-separated string
@@ -98,8 +90,9 @@ const EditForm = ({ team, onSave, onCancel }) => {
                     Save Changes
                 </Button> */}
             </div>
-            <button onClick={handleSave}>Save</button>
-            <button onClick={onCancel}>Cancel</button>
+            <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '20px'}}></div>
+            <Button variant='contained' color='success' onClick={handleSave}>Save</Button>
+            <Button variant='contained' color='error' onClick={onCancel} style={{marginLeft: '10px'}}>Cancel</Button>
         </div>
     );
 };
@@ -109,7 +102,7 @@ const TeamsTable = () => {
     const [teams, setTeams] = useState([]); // Store teams data from API
     const [editingTeam, setEditingTeam] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    
+    const [allowedMenus, setAllowedMenus] = useState([]);
 
     // Fetch data from the API
     useEffect(() => {
@@ -131,6 +124,8 @@ const TeamsTable = () => {
     const openEditModal = (team) => {
         setEditingTeam(team);
         console.log(team, 'team');
+        console.log(team.authority, 'authority');
+        setAllowedMenus(team.authority ? team.authority : []);
         setIsEditModalOpen(true);
     };
 
@@ -196,7 +191,7 @@ const TeamsTable = () => {
     return (
         <div>
             <DataTable
-                title="Teams Data Table"
+                title="Teams Data"
                 columns={columns}
                 data={teams}
                 pagination
@@ -206,6 +201,8 @@ const TeamsTable = () => {
                     team={editingTeam}
                     onSave={handleSave}
                     onCancel={() => setEditingTeam(null)}
+                    allowedMenus={allowedMenus} // Pass allowedMenus as prop
+                    setAllowedMenus={setAllowedMenus} // Pass setAllowedMenus as prop
                 />
             )}
         </div>
@@ -223,3 +220,4 @@ const App = () => {
 };
 
 export default App;
+

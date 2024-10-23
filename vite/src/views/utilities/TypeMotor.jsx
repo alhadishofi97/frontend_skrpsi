@@ -3,14 +3,7 @@ import DataTable from 'react-data-table-component';
 import { Button } from '@mui/material';
 import { IconPencil } from '@tabler/icons-react';
 
-// Authority menus
-const authorityMenus = [
-    'Manage Users',
-    'View Reports',
-    'Edit Products',
-    'Access Inventory',
-    'Process Sales',
-];
+
 
 // Component for Edit Form with checkboxes
 const EditForm = ({ team, onSave, onCancel }) => {

@@ -1,4 +1,3 @@
-// assets
 import { IconTypography, IconPalette, IconShadow, IconWindmill } from '@tabler/icons-react';
 
 // constant
@@ -13,7 +12,7 @@ const icons = {
 
 const utilities = {
   id: 'utilities',
-  title: 'Utilities',
+  title: 'List Menu',
   type: 'group',
   children: [
     {
@@ -55,7 +54,33 @@ const utilities = {
       url: '/utils/util-supplier',
       icon: icons.IconShadow,
       breadcrumbs: false
-    }
+    }, 
+    {
+      id: 'util-manageSupplier',
+      title: 'Manage Supplier',
+      type: 'item',
+      url: '/utils/util-manageSupplier',
+      icon: icons.IconWindmill,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-pembelianStock',
+      title: 'Pembelian Stock',
+      type: 'item',
+      url: '/utils/util-pembelianStock',
+    },
+    {
+      id: 'util-transaksi',
+      title: 'Transaksi',
+      type: 'item',
+      url: '/utils/util-transaksi',
+    },
+    {
+      id: 'util-type_motor',
+      title: 'Type Motor',
+      type: 'item',
+      url: '/utils/util-type_motor',
+    },
   ]
 };
 

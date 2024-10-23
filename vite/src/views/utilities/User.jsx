@@ -160,7 +160,7 @@ const UsersList = () => {
   const columns = [
     {
       name: 'ID',
-      selector: (row) => row.id,
+      selector: (row) => row.id_user,
       sortable: true,
     },
     {
@@ -340,24 +340,25 @@ const UsersList = () => {
     };
 
     const handleSubmit = async () => {
-        try {
-            const response = await axios.put(`https://backendapi.my.id/api/users/update-user/${user.id}`, formData, {
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Tambahkan token ke header
-                }
-            });
-            if (response.data.status === 'success') {
-                setSnackbarMessage('User updated successfully'); // Tambahkan pesan Snackbar
-                setSnackbarOpen(true); // Tampilkan Snackbar
-                onClose();
-            } else {
-                alert('Failed to update user');
-            }
-        } catch (error) {
-            console.error('Error updating user:', error);
-            alert('Error updating user');
-        }
+      try {
+          const response = await axios.put(`https://backendapi.my.id/api/users/update_user/${user.id_user}`, formData, {
+              headers: { 
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}` // Add token to header
+              }
+          });
+          
+          if (response.data.message === 'User updated successfully') {
+              setSnackbarMessage('User updated successfully'); // Set Snackbar message
+              setSnackbarOpen(true); // Show Snackbar
+              onClose(); // Close the form if you want
+          } else {
+              alert('Failed to update user');
+          }
+      } catch (error) {
+          console.error('Error updating user:', error);
+          alert('Error updating user');
+      }
     };
 
     return (

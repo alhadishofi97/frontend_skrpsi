@@ -10,6 +10,8 @@ import Alert from '@mui/material/Alert';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { width } from '@mui/system';
 import { IconPencil } from '@tabler/icons-react';
+import { walkObjectDeep } from '@mui/system/cssVars/cssVarsParser';
+import MuiAlert from '@mui/material/Alert'; // Pastikan Anda mengimpor Alert
 
 Modal.setAppElement('#root');
 
@@ -30,11 +32,10 @@ const BarangList = () => {
     nama_barang: '',
     id_kategori_barang: '',
     id_type_motor: '',
-    jumlah_digudang: '',
-    jumlah_ditoko: '',
+    jumlah_digudang: 0, // Set default value to 0
+    jumlah_ditoko: 0,   // Set default value to 0
     lokasi_rak: '',
     deskripsi: '',
-    foto_barang: '',
     harga: '',
     delete_status: 0,
     edited_by: ''
@@ -42,6 +43,12 @@ const BarangList = () => {
   const [editingItem, setEditingItem] = useState(null); // State to track which item is being edited
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteSnackbar, setDeleteSnackbar] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isPindahModalOpen, setIsPindahModalOpen] = useState(false);
+  const [pindahQuantity, setPindahQuantity] = useState(0);
+  const [selectedPindahRow, setSelectedPindahRow] = useState(null);
+  const [pindahSnackbar, setPindahSnackbar] = useState(false); // State untuk Snackbar pindah
+  const [errorSnackbar, setErrorSnackbar] = useState(false); // State untuk Snackbar error
 
   const formatRupiah = (value) => {
     return new Intl.NumberFormat('id-ID', {
@@ -63,17 +70,26 @@ const BarangList = () => {
   const columns = [
     { name: 'Part No', selector: (row) => row.part_no, sortable: true, wrap: true },
     { name: 'Nama Barang', selector: (row) => row.nama_barang, sortable: true, wrap: true },
-    { name: 'Jumlah di Gudang', selector: (row) => row.jumlah_digudang, sortable: true },
-    { name: 'Jumlah di Toko', selector: (row) => row.jumlah_ditoko, sortable: true },
+    { name: 'Jumlah di Gudang', selector: (row) => row.jumlah_digudang, sortable: true, wrap: true},
+    { name: 'Pindah barang ke toko', selector: (row) => row.jumlah_digudang, wrap: true, 
+      format: (row) => (
+        <div>
+          <Button variant="outlined" onClick={() => handlePindahBarang(row)}>
+            {row.jumlah_digudang}
+          </Button>
+        </div>  
+    )},
+    { name: 'Jumlah di Toko', selector: (row) => row.jumlah_ditoko, sortable: true, wrap: true },
     { name: 'Lokasi Rak', selector: (row) => row.lokasi_rak, sortable: true },
-    { name: 'Deskripsi', selector: (row) => row.deskripsi },
-    { name: 'Harga (Rp)', selector: (row) => row.harga, sortable: true, format: (row) => formatRupiah(row.harga) },
+    { name: 'Deskripsi', selector: (row) => row.deskripsi, sortable: true, wrap: true },
+    { name: 'Harga Jual', selector: (row) => row.harga, sortable: true, format: (row) => formatRupiah(row.harga_jual) },
+    { name: 'Harga Beli', selector: (row) => row.harga_beli, sortable: true, format: (row) => formatRupiah(row.harga_beli) },
     { name: 'Kategori', selector: (row) => row.kategori_barang?.nama_kategori_barang, sortable: true },
     { name: 'Tipe Motor', selector: (row) => row.type_motor?.type_motor, sortable: true },
     {
       name: 'Action',
       selector: (row) => 'Action',
-      width: '250px',
+      width: '275px',
       sortable: false,
       format: (row) => (
         <div>
@@ -121,6 +137,7 @@ const BarangList = () => {
         setDeleteDialogOpen(false); // Close the dialog
       }
     }
+
   };
 
   // Close the dialog without deleting
@@ -132,7 +149,8 @@ const BarangList = () => {
 
   const handleSave = async () => {
     if (!formData.part_no || !formData.nama_barang || !formData.harga || !formData.id_kategori_barang || !formData.id_type_motor) {
-      alert('Please fill in all required fields, including selecting a category and a type motor');
+      setOpenError(true); // Ganti alert dengan snackbar
+      setErrorMessage('Please fill in all required fields'); // Set pesan kesalahan
       return;
     }
 
@@ -149,6 +167,7 @@ const BarangList = () => {
 
       if (editingItem) {
         // Update existing item
+        console.log(formData);
         const response = await axios.put(`https://backendapi.my.id/api/barang/update_barang/${editingItem.id_barang}`, formData, config 
         );
 
@@ -159,8 +178,11 @@ const BarangList = () => {
         }
       } else {
         // Create new item
-        const barangResponse = await axios.post('https://backendapi.my.id/api/barang/create_barang', formData, config 
-        );
+        const barangResponse = await axios.post('https://backendapi.my.id/api/barang/create_barang', {
+          ...formData,
+          jumlah_digudang: 0, // Set default value to 0
+          jumlah_ditoko: 0    // Set default value to 0
+        }, config);
 
         if (barangResponse.data.status === 'success') {
           setOpen(true);
@@ -197,32 +219,12 @@ const BarangList = () => {
       jumlah_ditoko: row.jumlah_ditoko,
       lokasi_rak: row.lokasi_rak,
       deskripsi: row.deskripsi,
-      foto_barang: row.foto_barang,
-      harga: row.harga,
+      harga: row.harga || '', // Pastikan harga terisi
       delete_status: row.delete_status,
       edited_by: row.edited_by
     });
     setIsModalOpen(true);
   };
-
-  // const handleDelete = async (row) => {
-  //   if (window.confirm(`Are you sure you want to delete ${row.nama_barang}?`)) {
-  //     try {
-  //       const response = await axios.delete(`https://backendapi.my.id/api/barang/delete_barang/${row.id_barang}`);
-  //       if (response.data.status === 'success') {
-  //         setOpen1(true);
-  //         const updatedBarangData = await axios.get('https://backendapi.my.id/api/barang/all_barang');
-  //         setBarangData(updatedBarangData.data.data);
-  //         setFilteredData(updatedBarangData.data.data);
-  //       } else {
-  //         alert('Failed to delete barang.');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error deleting barang:', error);
-  //       alert('Failed to delete barang.');
-  //     }
-  //   }
-  // };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -238,23 +240,14 @@ const BarangList = () => {
           },
         };
 
-        // Fetch barang data
-        console.log(config);
-        const barangResponse = await axios.get('https://backendapi.my.id/api/barang/all_barang', config);
-        if (barangResponse.data.status === 'success') {
-          setBarangData(barangResponse.data.data);
-          setFilteredData(barangResponse.data.data);
+        // Fetch supplier data
+        const supplierResponse = await axios.get('https://backendapi.my.id/api/barang/all_barang', config);
+        if (supplierResponse.data.status === 'success') {
+          setBarangData(supplierResponse.data.data);
+          setFilteredData(supplierResponse.data.data);
         } else {
           setError('Failed to fetch data');
         }
-
-        // Fetch categories
-        const categoriesResponse = await axios.get('https://backendapi.my.id/api/kategori-barang/all/kategori/barang', config);
-        setCategories(categoriesResponse.data.data);
-
-        // Fetch motor types
-        const typesMotorResponse = await axios.get('https://backendapi.my.id/api/type-motor/all_motor', config);
-        setTypesMotor(typesMotorResponse.data.data);
 
         setLoading(false);
       } catch (error) {
@@ -289,14 +282,14 @@ const BarangList = () => {
       nama_barang: '',
       id_kategori_barang: '',
       id_type_motor: '',
-      jumlah_digudang: '',
-      jumlah_ditoko: '',
+      // jumlah_digudang: '',
+      // jumlah_ditoko: '',
       lokasi_rak: '',
       deskripsi: '',
-      foto_barang: '',
+      // foto_barang: '',
       harga: '',
       delete_status: 0,
-      edited_by: 'admin'
+      edited_by: ''
     });
     setIsModalOpen(true);
   };
@@ -314,12 +307,107 @@ const BarangList = () => {
     }));
   };
 
+  useEffect(() => {
+    const fetchTypesMotor = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+
+        const response = await axios.get('https://backendapi.my.id/api/type-motor/all_motor', config);
+        if (response.data.status === 'success') {
+          setTypesMotor(response.data.data);
+        } else {
+          console.error('Failed to fetch types motor');
+        }
+      } catch (error) {
+        console.error('Error fetching types motor:', error);
+      }
+    };
+
+    fetchTypesMotor();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+
+        const response = await axios.get('https://backendapi.my.id/api/kategori-barang/all/kategori/barang', config);
+        if (response.data.status === 'success') {
+          setCategories(response.data.data);
+        } else {
+          console.error('Failed to fetch categories');
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const handlePindahBarang = (row) => {
+    setSelectedPindahRow(row);
+    setIsPindahModalOpen(true);
+  };
+
+  const handlePindahSubmit = async () => {
+    if (selectedPindahRow) {
+      // Validasi untuk memastikan stok gudang tidak kurang dari jumlah yang dipindahkan
+      if (pindahQuantity > selectedPindahRow.jumlah_digudang) {
+        setErrorSnackbar(true); // Tampilkan Snackbar error
+        return; // Hentikan eksekusi jika validasi gagal
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        };
+        const response = await axios.put(
+          `https://backendapi.my.id/api/barang/update_stock/${selectedPindahRow.id_barang}`,
+          { jumlah_inputstok: pindahQuantity },
+          config
+        );
+
+        if (response.data.status === 'success') {
+          setPindahSnackbar(true); // Tampilkan Snackbar
+          setIsPindahModalOpen(false);
+          
+          // Perbarui data barang secara otomatis
+          const updatedBarangData = await axios.get('https://backendapi.my.id/api/barang/all_barang', config);
+          setBarangData(updatedBarangData.data.data);
+          setFilteredData(updatedBarangData.data.data);
+        } else {
+          alert('Failed to update stock');
+        }
+      } catch (error) {
+        console.error('Error updating stock:', error);
+        alert('Failed to update stock');
+      }
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
   return (
     <div>
-      <h1>List Barang Gudang</h1>
+      <h1>List Barang Supplier</h1>
       {/* <button variant="contained" onClick={openModal} style={{ marginBottom: '20px', padding: '10px', fontSize: '16px' }}>
         {editingItem ? 'Update Barang' : 'Create Barang'}
       </button> */}
@@ -395,20 +483,20 @@ const BarangList = () => {
               </option>
             ))}
           </select>
-          <input
+          {/* <input
             name="jumlah_digudang"
             placeholder="Jumlah di Gudang"
             value={formData.jumlah_digudang}
             onChange={handleInputChange}
             style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
-          />
-          <input
+          /> */}
+          {/* <input
             name="jumlah_ditoko"
             placeholder="Jumlah di Toko"
             value={formData.jumlah_ditoko}
             onChange={handleInputChange}
             style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
-          />
+          /> */}
           <input
             name="lokasi_rak"
             placeholder="Lokasi Rak"
@@ -424,26 +512,19 @@ const BarangList = () => {
             style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
           />
           <input
-            name="foto_barang"
-            placeholder="Foto Barang"
-            value={formData.foto_barang}
-            onChange={handleInputChange}
-            style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
-          />
-          <input
             name="harga"
-            placeholder="Harga"
+            placeholder="Harga Jual"
             value={formData.harga}
             onChange={handleInputChange}
             style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
           />
         </form>
-        <button onClick={handleSave} style={{ padding: '10px', fontSize: '16px' }}>
+        <Button variant="contained" onClick={handleSave} style={{ padding: '10px', fontSize: '16px' }}>
           {editingItem ? 'Update' : 'Save'}
-        </button>
-        <button onClick={closeModal} style={{ padding: '10px', fontSize: '16px', marginLeft: '10px' }}>
+        </Button>
+        <Button variant="contained" color='error' onClick={closeModal} style={{ padding: '10px', fontSize: '16px', marginLeft: '10px' }}>
           Cancel
-        </button>
+        </Button>
       </Modal>
 
       
@@ -454,8 +535,8 @@ const BarangList = () => {
           </Alert>
         </Snackbar>
         <Snackbar open={openError} autoHideDuration={3000} onClose={() => setOpenError(false)}>
-          <Alert onClose={handleClose} severity="error" variant="filled" sx={{ width: '100%' }}>
-            Part number already exists. Please use a different part number.
+          <Alert onClose={() => setOpenError(false)} severity="error" variant="filled" sx={{ width: '100%' }}>
+            {errorMessage}
           </Alert>
         </Snackbar>
       </div>
@@ -468,7 +549,7 @@ const BarangList = () => {
         <DialogTitle id="alert-dialog-title">{"Confirm Delete"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete barang "{selectedRow?.nama_barang}"?
+            Are you sure you want to delete barang <strong>"{selectedRow?.nama_barang}"</strong>?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -486,6 +567,50 @@ const BarangList = () => {
             Barang deletd successfully!
           </Alert>
         </Snackbar>
+      <Modal
+        isOpen={isPindahModalOpen}
+        onRequestClose={() => setIsPindahModalOpen(false)}
+        contentLabel="Pindah Barang"
+        style={{
+          content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            width: 'auto',
+            padding: '20px'
+          }
+        }}
+      >
+        <h2>Pindah Barang ke Toko</h2>
+        <form>
+          <input
+            type="number"
+            placeholder="Jumlah Kuantitas"
+            value={pindahQuantity}
+            onChange={(e) => setPindahQuantity(e.target.value)}
+            style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
+          />
+        </form>
+        <Button variant="contained" onClick={handlePindahSubmit} style={{ padding: 'auto', fontSize: 'auto' }}>
+          Pindah Barang
+        </Button>
+        <Button variant="contained" color='error' onClick={() => setIsPindahModalOpen(false)} style={{ padding: 'auto', fontSize: 'auto', marginLeft: '10px' }}>
+          Cancel
+        </Button>
+      </Modal>
+      <Snackbar open={pindahSnackbar} autoHideDuration={3000} onClose={() => setPindahSnackbar(false)}>
+        <MuiAlert onClose={() => setPindahSnackbar(false)} severity="success" variant="filled">
+          Stock toko updated successfully!
+        </MuiAlert>
+      </Snackbar>
+      <Snackbar open={errorSnackbar} autoHideDuration={3000} onClose={() => setErrorSnackbar(false)}>
+        <MuiAlert onClose={() => setErrorSnackbar(false)} severity="error" variant="filled">
+          Jumlah pindah tidak boleh lebih besar dari stok di gudang.
+        </MuiAlert>
+      </Snackbar>
     </div>
   );
 };

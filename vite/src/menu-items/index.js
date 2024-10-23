@@ -6,7 +6,7 @@ import other from './other';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [dashboard, pages, utilities, other]
+  items: [utilities]
 };
 
 // const allowedMenus = ['dashboard', 'default', 'pages', 'authentication', 'register3'];

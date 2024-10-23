@@ -56,16 +56,18 @@ export const Login = () => {
       if (response.ok && data.status === 'success') {
         // Login successful, navigate to the dashboard or home
         localStorage.setItem('token', data.token);
-        localStorage.setItem('menu-items', data.authority);  
-        localStorage.setItem('user', loginData.username);
+        localStorage.setItem('menu-items', data.authority);
+        localStorage.setItem('username', loginData.username);
+        localStorage.setItem('name', data.name);
+        localStorage.setItem('id_user', data.id_user);
+
         // window.location.replace('dashboard/default');
         
-       
         // alert('Login berhasil');
         navigate(0);  // Adjust the route as needed
       } else {
         // Display error message
-        setError(data.message || 'Login failed, please try again.');
+        setError(data.data || 'Login failed, please try again.');
       }
     } catch (error) {
       setError('An error occurred while logging in.');
