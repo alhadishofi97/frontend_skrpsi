@@ -13,6 +13,9 @@ import TotalGrowthBarChart from './TotalGrowthBarChart';
 
 import { gridSpacing } from 'store/constant';
 
+//20241025 
+import { useNavigate } from 'react-router-dom';
+
 // assets
 import StorefrontTwoToneIcon from '@mui/icons-material/StorefrontTwoTone';
 
@@ -20,7 +23,8 @@ import StorefrontTwoToneIcon from '@mui/icons-material/StorefrontTwoTone';
 
 const Dashboard = () => {
   const [isLoading, setLoading] = useState(true);
-
+  //20241025  
+  const navigate = useNavigate();
   useEffect(() => {
     setLoading(false);
   }, []);

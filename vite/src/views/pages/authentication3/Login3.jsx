@@ -64,7 +64,9 @@ export const Login = () => {
         // window.location.replace('dashboard/default');
         
         // alert('Login berhasil');
-        navigate(0);  // Adjust the route as needed
+        //20241025 
+        navigate('/dashboard/default',{replace:true});
+        // navigate(0);  // Adjust the route as needed
       } else {
         // Display error message
         setError(data.data || 'Login failed, please try again.');

@@ -3,6 +3,8 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+//20241025 
+import ProtectedRoute from './ProtectedRoute';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -30,14 +32,18 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      // element: <DashboardDefault />
+      //20241025 
+      element: <ProtectedRoute element={<DashboardDefault />} requireAuth />
     },
     {
       path: 'dashboard',
       children: [
         {
           path: 'default',
-          element: <DashboardDefault />
+          // element: <DashboardDefault />
+          //20241025 
+          element: <ProtectedRoute element={<DashboardDefault />} requireAuth /> 
         }
       ]
     },
