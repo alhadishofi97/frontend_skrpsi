@@ -8,7 +8,7 @@
     "email": "CodedThemes@gmail.com",
     "url": "https://codedthemes.com/"
   },
-  "homepage": "https://berrydashboard.io/free",
+  "homepage": "https://backendapi.my.id/bengkel/",
   "scripts": {
     "build": "vite build",
     "preview": "vite preview",
