@@ -38,6 +38,7 @@ const BarangList = () => {
     fetchData();
   }, []);
 
+
   const columns = [
     { name: 'ID', selector: row => row.id },
     { name: 'Nama Alur', selector: row => row.nama_alur},
