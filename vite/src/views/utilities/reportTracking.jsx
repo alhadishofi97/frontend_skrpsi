@@ -39,14 +39,14 @@ const BarangList = () => {
   }, []);
 
   const columns = [
-    { name: 'ID', selector: row => row.id, sortable: true },
-    { name: 'Nama Alur', selector: row => row.nama_alur, sortable: true },
-    { name: 'ID Nota', selector: row => row.id_nota, sortable: true, format: row => row.id_nota || '-' },
-    { name: 'Nama Supplier', selector: row => row.nama_supplier, sortable: true, format: row => row.nama_supplier || '-' },
-    { name: 'Nama Barang', selector: row => row.nama_barang, sortable: true },
-    { name: 'Quantity', selector: row => row.quantity, sortable: true },
-    { name: 'Harga Beli', selector: row => row.harga_beli, sortable: true, format: row => row.harga_beli ? `Rp ${row.harga_beli.toLocaleString()}` : '-' },
-    { name: 'Waktu Dibuat', selector: row => row.created_time, sortable: true, format: row => new Date(row.created_time).toLocaleString() }
+    { name: 'ID', selector: row => row.id },
+    { name: 'Nama Alur', selector: row => row.nama_alur},
+    { name: 'ID Nota', selector: row => row.id_nota, format: row => row.id_nota || '-' },
+    { name: 'Nama Supplier', selector: row => row.nama_supplier, format: row => row.nama_supplier || '-' },
+    { name: 'Nama Barang', selector: row => row.nama_barang},
+    { name: 'Quantity', selector: row => row.quantity},
+    { name: 'Harga Beli', selector: row => row.harga_beli, format: row => row.harga_beli ? `Rp ${row.harga_beli.toLocaleString()}` : '-' },
+    { name: 'Waktu Dibuat', selector: row => row.created_time, format: row => new Date(row.created_time).toLocaleString() }
   ];
 
   const exportToExcel = (apiData, fileName) => {
