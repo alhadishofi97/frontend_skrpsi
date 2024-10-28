@@ -144,7 +144,7 @@ const SearchSection = () => {
         </PopupState>
       </Box>
       <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-        <OutlinedInput
+        {/* <OutlinedInput
           id="input-search-header"
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -164,7 +164,7 @@ const SearchSection = () => {
           aria-describedby="search-helper-text"
           inputProps={{ 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } }}
           sx={{ width: { md: 250, lg: 434 }, ml: 2, px: 2 }}
-        />
+        /> */}
       </Box>
     </>
   );

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import Modal from 'react-modal';
@@ -76,6 +77,7 @@ const BarangList = () => {
   const [mechanicName, setMechanicName] = useState(''); // State untuk nama mekanik
   const [mechanicId, setMechanicId] = useState(null); // State untuk id_user mekanik
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const fetchMekanik = async () => {
     try {
@@ -347,13 +349,19 @@ const BarangList = () => {
 
   // Fungsi untuk menambah barang ke tabel transaksi
   const handleAddBarang = (item) => {
+    if (item.jumlah_ditoko <= 0) {
+      setSnackbarMessage('Jumlah barang di toko habis');
+      setSnackbarOpen(true);
+      return;
+    }
+
     const harga = parseFloat(item.harga_jual) || 0;
     const defaultQuantity = 1;
     const totalHarga = harga * defaultQuantity;
 
     setTransaksiData((prevData) => [
-        ...prevData,
-        { ...item, quantity: defaultQuantity, total: totalHarga }
+      ...prevData,
+      { ...item, quantity: defaultQuantity, total: totalHarga }
     ]);
 
     // Update total cost
@@ -369,6 +377,14 @@ const BarangList = () => {
   };
 
   const handleQuantityChange = (partNo, quantity) => {
+    const item = transaksiData.find(item => item.part_no === partNo);
+
+    if (quantity > item.jumlah_ditoko) {
+      setSnackbarMessage('Jumlah barang tidak tersedia');
+      setSnackbarOpen(true);
+      return;
+    }
+
     const updatedTransaksiData = transaksiData.map(item => {
       if (item.part_no === partNo) {
         const harga_jual = parseFloat(item.harga_jual) || 0;
@@ -1068,7 +1084,7 @@ const BarangList = () => {
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
                 <MuiAlert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
-                    {errorMessage}
+                    {snackbarMessage}
                 </MuiAlert>
             </Snackbar>
       <Modal

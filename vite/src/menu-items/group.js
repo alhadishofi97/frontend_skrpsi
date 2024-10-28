@@ -1,8 +1,7 @@
 // assets
-import { IconDashboard } from '@tabler/icons-react';
-
+import { IconUsersGroup } from '@tabler/icons-react';
 // constant
-const icons = { IconDashboard };
+const icons = { IconUsersGroup };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
 
@@ -16,7 +15,7 @@ const dashboard = {
       title: 'group',
       type: 'item',
       url: '/utils/group',
-      icon: icons.IconDashboard,
+      icon: icons.IconUsersGroup,
       breadcrumbs: false
     }
   ]

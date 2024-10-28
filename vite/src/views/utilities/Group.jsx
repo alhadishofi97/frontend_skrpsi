@@ -19,6 +19,21 @@ const EditForm = ({ team, onSave, onCancel, allowedMenus, setAllowedMenus  }) =>
     // };
     const storedAllowedMenus = localStorage.getItem('menu-items');
     // const [allowedMenus, setAllowedMenus] = useState(storedAllowedMenus ? JSON.parse(storedAllowedMenus) : []);
+    console.log(menuItems)
+    useEffect(() => {
+        const handleStorageChange = (event) => {
+            if (event.key === 'menu-items') {
+                const newMenus = JSON.parse(event.newValue);
+                if (JSON.stringify(newMenus) !== JSON.stringify(allowedMenus)) {
+                    setAllowedMenus(newMenus);
+                }
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [allowedMenus]); // Kini mendengarkan perubahan spesifik pada 'menu-items' di localStorage
 
     const handleSave = () => {
         onSave({ ...team, authority: allowedMenus}); // Save selected authorities as comma-separated string
@@ -27,36 +42,50 @@ const EditForm = ({ team, onSave, onCancel, allowedMenus, setAllowedMenus  }) =>
     
 
     const handleMenuToggle = (id, children) => {
-
         setAllowedMenus((prev) => {
-          const newAllowedMenus = new Set(prev); // Gunakan Set untuk menghindari duplikasi
-    
-          const toggleChildren = (childNodes, shouldCheck) => {
-            childNodes.forEach((child) => {
-              if (shouldCheck) {
-                newAllowedMenus.add(child.id); // Tambah ke Set
-              } else {
-                newAllowedMenus.delete(child.id); // Hapus dari Set
-              }
-              // Jika ada children, lakukan rekursi
-              if (Array.isArray(child.children)) {
-                toggleChildren(child.children, shouldCheck);
-              }
-            });
-          };
-    
-          const shouldCheck = !newAllowedMenus.has(id); // Cek jika id sudah ada di Set
-          if (shouldCheck) {
-            newAllowedMenus.add(id); // Tambah parent
-          } else {
-            newAllowedMenus.delete(id); // Hapus parent
-          }
-    
-          toggleChildren(children, shouldCheck); // Toggle children sesuai dengan parent
-    
-          return Array.from(newAllowedMenus); // Kembalikan ke array
+            const newAllowedMenus = new Set(prev);
+
+            const toggleChildren = (childNodes, shouldCheck) => {
+                childNodes.forEach((child) => {
+                    if (shouldCheck) {
+                        newAllowedMenus.add(child.id);
+                    } else {
+                        newAllowedMenus.delete(child.id);
+                    }
+                    if (Array.isArray(child.children)) {
+                        toggleChildren(child.children, shouldCheck);
+                    }
+                });
+            };
+
+            const shouldCheck = !newAllowedMenus.has(id);
+            if (shouldCheck) {
+                newAllowedMenus.add(id);
+            } else {
+                newAllowedMenus.delete(id);
+            }
+
+            toggleChildren(children, shouldCheck);
+
+            // Setelah mengubah children, periksa dan update status parent berdasarkan children
+            updateParentSelection(id, newAllowedMenus);
+
+            return Array.from(newAllowedMenus);
         });
-      };
+    };
+
+    // Fungsi untuk memperbarui seleksi parent berdasarkan status seleksi children
+    const updateParentSelection = (parentId, menuSet) => {
+        const parent = menuItems.items.find(item => item.children && item.children.some(child => child.id === parentId));
+        if (parent) {
+            const allChildrenSelected = parent.children.every(child => menuSet.has(child.id));
+            if (allChildrenSelected) {
+                menuSet.add(parent.id);
+            } else {
+                menuSet.delete(parent.id);
+            }
+        }
+    };
 
     const renderTree = (nodes) => (
         <TreeItem
@@ -124,7 +153,7 @@ const TeamsTable = () => {
     const openEditModal = (team) => {
         setEditingTeam(team);
         console.log(team, 'team');
-        console.log(team.authority, 'authority');
+        // console.log(team.authority, 'authority');
         setAllowedMenus(team.authority ? team.authority : []);
         setIsEditModalOpen(true);
     };
@@ -139,7 +168,7 @@ const TeamsTable = () => {
                 },
                 body: JSON.stringify({
                     name: edited.name,
-                    authority: JSON.stringify(edited.authority),
+                    authority: JSON.stringify(edited.authority), // Pastikan ini adalah string JSON
                 }),
             });
             const result = await response.json();
@@ -147,7 +176,7 @@ const TeamsTable = () => {
                 console.log('Updated team:', edited);
                 setTeams((prevTeams) =>
                     prevTeams.map((team) =>
-                        team.id === edited.id ? edited : team
+                        team.id === edited.id ? {...team, authority: edited.authority} : team
                     )
                 );
                 setEditingTeam(null); // Close form after save
@@ -220,4 +249,6 @@ const App = () => {
 };
 
 export default App;
+
+
 

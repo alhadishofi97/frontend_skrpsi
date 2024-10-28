@@ -19,8 +19,7 @@ import Logo from 'ui-component/Logo';
 import AuthFooter from 'ui-component/cards/AuthFooter';
 
 // Mocking the login API response for this example
-const loginApiUrl = 'https://backendapi.my.id/api/users/login';
-
+const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
 
 export const Login = () => {
@@ -45,7 +44,7 @@ export const Login = () => {
     // console.log(loginData);
 
     try {
-      const response = await fetch(loginApiUrl, {
+      const response = await fetch(BASE_URL + '/api/users/login', {  // Perbaiki di sini
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData),
@@ -56,7 +55,7 @@ export const Login = () => {
       if (response.ok && data.status === 'success') {
         // Login successful, navigate to the dashboard or home
         localStorage.setItem('token', data.token);
-        localStorage.setItem('menu-items', data.authority);
+        localStorage.setItem('menu-items', JSON.stringify(data.authority)); // Simpan sebagai string JSON
         localStorage.setItem('username', loginData.username);
         localStorage.setItem('name', data.name);
         localStorage.setItem('id_user', data.id_user);
@@ -65,11 +64,11 @@ export const Login = () => {
         
         // alert('Login berhasil');
         //20241025 
-        navigate('/dashboard/default',{replace:true});
+        navigate('/dashboard/default', { replace: true });
         // navigate(0);  // Adjust the route as needed
       } else {
         // Display error message
-        setError(data.data || 'Login failed, please try again.');
+        setError(data.data || 'Username atau password salah');
       }
     } catch (error) {
       setError('An error occurred while logging in.');
@@ -94,11 +93,11 @@ export const Login = () => {
                       <Grid item>
                         <Stack alignItems="center" justifyContent="center" spacing={1}>
                           <Typography color="secondary.main" gutterBottom variant={downMD ? 'h3' : 'h2'}>
-                            Hi, Welcome Back
+                            Hi, Selamat Datang
                           </Typography>
-                          <Typography variant="caption" fontSize="16px" textAlign={{ xs: 'center', md: 'inherit' }}>
+                          {/* <Typography variant="caption" fontSize="16px" textAlign={{ xs: 'center', md: 'inherit' }}>
                             Enter your credentials to continue
-                          </Typography>
+                          </Typography> */}
                         </Stack>
                       </Grid>
                     </Grid>
@@ -139,9 +138,9 @@ export const Login = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Grid item container direction="column" alignItems="center" xs={12}>
-                      <Typography component={Link} to="/pages/register/register3" variant="subtitle1" sx={{ textDecoration: 'none' }}>
+                      {/* <Typography component={Link} to="/pages/register/register3" variant="subtitle1" sx={{ textDecoration: 'none' }}>
                         Don&apos;t have an account?
-                      </Typography>
+                      </Typography> */}
                     </Grid>
                   </Grid>
                 </Grid>

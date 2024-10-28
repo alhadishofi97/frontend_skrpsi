@@ -1,3 +1,4 @@
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 
 // third party
@@ -7,6 +8,7 @@ import { Provider } from 'react-redux';
 // project imports
 import App from './App';
 import reducer from './store/reducer';
+import { MenuProvider } from './contexts/menuContext';
 
 // google-fonts
 import '@fontsource/roboto/400.css';
@@ -35,9 +37,13 @@ const store = configureStore({ reducer });
 // ==============================|| REACT DOM RENDER  ||============================== //
 
 root.render(
-  <Provider store={store}>
-    <App />
-  </Provider>
+  <React.StrictMode>
+    <Provider store={store}>
+      <MenuProvider>
+        <App />
+      </MenuProvider>
+    </Provider>
+  </React.StrictMode>
 );
 
 // If you want your app to work offline and load faster, you can change

@@ -34,7 +34,10 @@ const PembelianStock = () => {
 
         if (response.data) {
           // Jika respons adalah objek, bungkus dalam array
-          setPembelian(Array.isArray(response.data) ? response.data : [response.data]);
+          const data = Array.isArray(response.data) ? response.data : [response.data];
+          // Urutkan data berdasarkan ID Pembelian
+          data.sort((a, b) => a.id_pembelian - b.id_pembelian);
+          setPembelian(data); // Update state dengan data baru yang sudah diurutkan
         } else {
           setError('Data is not in expected format');
         }
@@ -125,6 +128,18 @@ const PembelianStock = () => {
     try {
       const response = await axios.post('https://backendapi.my.id/api/pembelian/create-pembelian', dataToSend, config);
       console.log('Response:', response.data);
+      
+      // Periksa apakah response.data adalah array
+      if (Array.isArray(response.data)) {
+        const updatedData = [...pembelian, ...response.data];
+        // Urutkan data berdasarkan ID Pembelian
+        updatedData.sort((a, b) => a.id_pembelian - b.id_pembelian);
+        setPembelian(updatedData); // Update state dengan data baru yang sudah diurutkan
+      } else {
+        // Jika bukan array, tambahkan data tunggal ke state
+        setPembelian(prev => [...prev, response.data]);
+      }
+      
       closeModal();
     } catch (err) {
       console.error('Error:', err);
@@ -151,7 +166,14 @@ const PembelianStock = () => {
     { name: 'ID Nota', selector: (row) => row.id_nota, sortable: true },
     { name: 'Nama Alur', selector: (row) => row.nama_alur, sortable: true, wrap: true },
     { name: 'Nama Supplier', selector: (row) => row.nama_supplier, sortable: true, wrap: true },
-    { name: 'Tanggal', selector: (row) => new Date(row.created_at).toLocaleDateString(), sortable: true },
+    { 
+      name: 'Tanggal', 
+      selector: (row) => {
+        const date = new Date(row.created_at);
+        return isNaN(date) ? 'Invalid Date' : date.toLocaleDateString('id-ID'); 
+      }, 
+      sortable: true 
+    },
     { name: 'No. Telp', selector: (row) => row.no_telp, sortable: true },
     { name: 'Alamat', selector: (row) => row.alamat, sortable: true }
   ];

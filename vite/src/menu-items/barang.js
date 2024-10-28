@@ -1,8 +1,8 @@
 // assets
-import { IconDashboard } from '@tabler/icons-react';
+import { IconShoppingCart } from '@tabler/icons-react';
 
 // constant
-const icons = { IconDashboard };
+const icons = { IconShoppingCart };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
 
@@ -16,7 +16,7 @@ const dashboard = {
       title: 'Barang',
       type: 'item',
       url: '/utils/barang',
-      icon: icons.IconDashboard,
+      icon: icons.IconShoppingCart,
       breadcrumbs: false
     }
   ]

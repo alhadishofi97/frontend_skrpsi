@@ -380,7 +380,8 @@ const BarangList = () => {
         };
         const response = await axios.put(
           `https://backendapi.my.id/api/barang/update_stock/${selectedPindahRow.id_barang}`,
-          { jumlah_inputstok: pindahQuantity },
+          { jumlah_inputstok: pindahQuantity, 
+            created_by: localStorage.getItem('username') },
           config
         );
 

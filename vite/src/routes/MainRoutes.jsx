@@ -20,7 +20,7 @@ const UtilsManageSupplier = Loadable(lazy(() => import('views/utilities/ManageSu
 const UtilsPembelianStock = Loadable(lazy(() => import('views/utilities/PembelianStock')));
 const UtilsTransaksi = Loadable(lazy(() => import('views/utilities/Transaksi')));
 const UtilsTypeMotor = Loadable(lazy(() => import('views/utilities/TypeMotor')));
-
+const UtilsReportTracking = Loadable(lazy(() => import('views/utilities/ReportTracking')));
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
@@ -116,6 +116,15 @@ const MainRoutes = {
       {
         path: 'util-transaksi',
         element: <UtilsTransaksi />
+      }
+      ]
+    },
+    {
+      path: 'utils',
+      children: [
+      {
+        path: 'util-reportTracking',
+        element: <UtilsReportTracking />
       }
       ]
     },

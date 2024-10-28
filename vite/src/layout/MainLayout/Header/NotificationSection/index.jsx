@@ -98,7 +98,7 @@ const NotificationSection = () => {
         }}
       >
         <ButtonBase sx={{ borderRadius: '12px' }}>
-          <Avatar
+          {/* <Avatar
             variant="rounded"
             sx={{
               ...theme.typography.commonAvatar,
@@ -118,7 +118,7 @@ const NotificationSection = () => {
             color="inherit"
           >
             <IconBell stroke={1.5} size="1.3rem" />
-          </Avatar>
+          </Avatar> */}
         </ButtonBase>
       </Box>
       <Popper
